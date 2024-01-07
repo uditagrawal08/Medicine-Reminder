@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Medicine Report</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Add your custom CSS styles here -->
+  <style>
+    /* Custom styles */
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Medicine Report</h1>
+    <div class="row mt-4">
+      <div class="col">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Medicine Name</th>
+              <th scope="col">Repetitiveness</th>
+              <th scope="col">Repetition Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for medicine in medicines %}
+            <tr>
+              <td>{{ medicine.medicine_name }}</td>
+              <td>{{ medicine.repetitiveness }}</td>
+              <td>{{ medicine.repetition_count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

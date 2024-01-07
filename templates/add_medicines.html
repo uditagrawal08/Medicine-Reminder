@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Medicine</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Add Medicine</h1>
+    <form action="/add_medicines" method="post">
+      <div class="form-group">
+        <label for="medicineName">Medicine Name:</label>
+        <input type="text" class="form-control" id="medicineName" name="medicineName" placeholder="Enter medicine name">
+      </div>
+
+      <div class="form-group">
+        <label for="repetitiveness">Repetitiveness:</label>
+        <select class="form-control" id="repetitiveness" name="repetitiveness">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="repetitionCount">Repetition Count:</label>
+        <input type="number" class="form-control" id="repetitionCount" name="repetitionCount" placeholder="Enter repetition count">
+      </div>
+      <button type="button" class="btn btn-primary" onclick="add_calender()">Add Event</button>
+
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    function add_calender() {
+      window.location.href='/add_calender';
+    }
+    </script>
+</body>
+</html>
