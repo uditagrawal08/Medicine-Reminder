@@ -1,6 +1,5 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify,session,redirect,url_for
 from pymongo import MongoClient
-import tkinter.messagebox as tkMessageBox
 
 import datetime
 import os.path
@@ -10,20 +9,102 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from datetime import datetime, timedelta
+from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
 
 # MongoDB connection
 client = MongoClient('mongodb://localhost:27017/')
 db = client['medicine_reminder']  # Replace 'medicine_reminder' with your database name
 medicines_collection = db['medicines']  # Collection to store medicines
 
+users_collection = db['users']
+
+
+
 @app.route('/')
+def home():
+    return render_template('home.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        user = users_collection.find_one({'username': username, 'password': password})
+
+        if user:
+            session['user_id'] = str(user['_id'])  # Convert ObjectId to string
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template('login.html', error='Invalid credentials')
+
+    return render_template('login.html')
+
+
+
+@app.route('/dashboard')
+def dashboard():
+    user_id = session.get('user_id')
+    if user_id:
+        # Perform actions for a logged-in user
+        return render_template('index.html',user_id=user_id)
+
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        # Check if the username already exists in the database
+        existing_user = users_collection.find_one({'username': username})
+        if existing_user:
+            return render_template('register.html', error='Username already exists')
+
+        # If username is not already taken, insert the new user into the database
+        new_user = {'username': username, 'password': password}
+        users_collection.insert_one(new_user)
+
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id')
+    return redirect(url_for('login'))
+
+# Route for the dashboard page
+
+
+
+@app.route("/index",methods=['GET','POST'])
 def index():
-    return render_template('index.html')  # Render the HTML form here
+  if request.method == 'POST':
+    userName=request.form['userName']
+    medicalHistory=request.form['medicalHistory']
+    user_details={
+      'userName':userName,
+      'medicalHistory':medicalHistory
+    } 
+    result=users_collection.insert_one(user_details)   
+    
+    return render_template('add_medicines.html')  # Render the HTML form here
 
 @app.route('/add_medicines', methods=['GET', 'POST'])
 def add_medicines():
@@ -31,6 +112,8 @@ def add_medicines():
         medicine_name = request.form['medicineName']
         repetitiveness = request.form['repetitiveness']
         repetition_count = int(request.form['repetitionCount'])
+        
+        
 
         medicine_data = {
             'medicine_name': medicine_name,
@@ -56,10 +139,17 @@ def medicines_report():
     return render_template('medicines_report.html', medicines=medicines)
 
 
+
 @app.route('/add_calender')
 def add_calender():
-  medicines = list(medicines_collection.find())
-  
+  last_medicine = medicines_collection.find_one(sort=[('_id', -1)])
+
+  # medicines = list(medicines_collection.find())
+
+
+  """Shows basic usage of the Google Calendar API.
+  Prints the start and name of the next 10 events on the user's calendar.
+  """
   creds = None
   # The file token.json stores the user's access and refresh tokens, and is
   # created automatically when the authorization flow completes for the first
@@ -82,36 +172,31 @@ def add_calender():
   try:
     service = build("calendar", "v3", credentials=creds)
 
-    # Call the Calendar API
-    events={
-      "summary": "Mediciene",
-      "location": "Home",
-      "description": "Be Healthy Tke Mediciene On Time",
-      "start": {
-      "dateTime": "2024-02-01T09:00:00",  # Remove time zone offset here
-      "timeZone": "Asia/Kolkata"
-        },
-      "end": {
-      "dateTime": "2024-02-03T17:00:00",
-      "timeZone": "Asia/Kolkata"
-      },
-      "recurrence": ["RRULE:FREQ={ medicine.repetitiveness};COUNT={ medicine.repetition_count }"],
-      "attendees": [
-        {"email": "08udit@bhu.ac.in"},
-    
-      ],
-    }
+    events = {
+            "summary": f"Take {last_medicine['repetition_count']} {last_medicine['medicine_name']}",
+            "location": "home",
+            "description": f"Reminder to take {last_medicine['repetition_count']} {last_medicine['medicine_name']}",
+            "start": {
+                "dateTime": datetime.now().isoformat(),  # Remove time zone offset here
+                "timeZone": "Asia/Kolkata"
+            },
+            "end": {
+                "dateTime": (datetime.now() + timedelta(hours=1)).isoformat(),
+                "timeZone": "Asia/Kolkata"
+            },
+            "recurrence": [f"RRULE:FREQ={last_medicine['repetitiveness'].upper()};COUNT={last_medicine['repetition_count']}"],
+            "attendees": [
+                {"email": "08udit@bhu.ac.in"},
+            ],
+        }
     event=service.events().insert(calendarId="primary", body=events).execute()
     print("Event created: %s" % (event.get("htmlLink")))
     
 
   except HttpError as error:
     print(f"An error occurred: {error}")
-    
 
-    
-    return tkMessageBox.showinfo("Your Event is Saved")
- 
+  return render_template('add_medicines.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
