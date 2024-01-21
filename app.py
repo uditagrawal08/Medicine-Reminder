@@ -14,13 +14,13 @@ from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
-
+connection_string='mongodb+srv://2001uditagrawal:kATGc2ILD8MoECiP@cluster0.4mlly09.mongodb.net/'
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 
 # MongoDB connection
-client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient(connection_string)
 db = client['medicine_reminder']  # Replace 'medicine_reminder' with your database name
 medicines_collection = db['medicines']  # Collection to store medicines
 
