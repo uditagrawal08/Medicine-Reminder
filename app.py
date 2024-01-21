@@ -11,16 +11,22 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from datetime import datetime, timedelta
 from google.auth.transport.requests import Request
+from pymongo.server_api import ServerApi
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
-connection_string='mongodb+srv://2001uditagrawal:kATGc2ILD8MoECiP@cluster0.4mlly09.mongodb.net/'
+# connection_string='mongodb+srv://2001uditagrawal:kATGc2ILD8MoECiP@cluster0.4mlly09.mongodb.net/'
+
+uri = "mongodb+srv://2001uditagrawal:vlirYE5ha9tPy6ec@cluster0.4mlly09.mongodb.net/?retryWrites=true&w=majority"
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 
 # MongoDB connection
-client = MongoClient(connection_string)
 db = client['medicine_reminder']  # Replace 'medicine_reminder' with your database name
 medicines_collection = db['medicines']  # Collection to store medicines
 
