@@ -198,5 +198,5 @@ def add_calender():
 
   return render_template('add_medicines.html')
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
