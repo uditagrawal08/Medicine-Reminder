@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify,session,redirect,url_for
 from pymongo import MongoClient
+from bson import ObjectId
 
 import datetime
 import os.path
@@ -119,9 +120,10 @@ def add_medicines():
         repetitiveness = request.form['repetitiveness']
         repetition_count = int(request.form['repetitionCount'])
         
-        
+        user_id=ObjectId(session.get("user_id"))
 
         medicine_data = {
+            'user_id': user_id,
             'medicine_name': medicine_name,
             'repetitiveness': repetitiveness,
             'repetition_count': repetition_count
@@ -140,11 +142,14 @@ def add_medicines():
 
 @app.route('/medicines_report')
 def medicines_report():
-    medicines = list(medicines_collection.find())
-      # Retrieve all medicines from MongoDB
-    return render_template('medicines_report.html', medicines=medicines)
-
-
+    user_id = session.get('user_id')
+    if user_id:
+        user_object_id = ObjectId(user_id)
+        # Retrieve medicines for the logged-in user
+        medicines = list(medicines_collection.find({'user_id': user_object_id}))
+        return render_template('medicines_report.html', medicines=medicines)
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/add_calender')
 def add_calender():
@@ -204,5 +209,5 @@ def add_calender():
 
   return render_template('add_medicines.html')
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
